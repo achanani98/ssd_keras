@@ -92,7 +92,7 @@ class SSDLoss:
         # Make sure that `y_pred` doesn't contain any zeros (which would break the log function)
         y_pred = tf.maximum(y_pred, 1e-15)
         # Compute the log loss
-        log_loss = -tf.reduce_sum(y_true * tf.log(y_pred), axis=-1)
+        log_loss = -tf.reduce_sum(y_true * tf.compat.v1.log(y_pred), axis=-1)
         return log_loss
 
     def compute_loss(self, y_true, y_pred):
@@ -151,7 +151,7 @@ class SSDLoss:
 
         # First, compute the classification loss for all negative boxes.
         neg_class_loss_all = classification_loss * negatives # Tensor of shape (batch_size, n_boxes)
-        n_neg_losses = tf.count_nonzero(neg_class_loss_all, dtype=tf.int32) # The number of non-zero loss entries in `neg_class_loss_all`
+        n_neg_losses = tf.compat.v1.count_nonzero(neg_class_loss_all, dtype=tf.int32) # The number of non-zero loss entries in `neg_class_loss_all`
         # What's the point of `n_neg_losses`? For the next step, which will be to compute which negative boxes enter the classification
         # loss, we don't just want to know how many negative ground truth boxes there are, but for how many of those there actually is
         # a positive (i.e. non-zero) loss. This is necessary because `tf.nn.top-k()` in the function below will pick the top k boxes with
@@ -163,7 +163,7 @@ class SSDLoss:
 
         # Compute the number of negative examples we want to account for in the loss.
         # We'll keep at most `self.neg_pos_ratio` times the number of positives in `y_true`, but at least `self.n_neg_min` (unless `n_neg_loses` is smaller).
-        n_negative_keep = tf.minimum(tf.maximum(self.neg_pos_ratio * tf.to_int32(n_positive), self.n_neg_min), n_neg_losses)
+        n_negative_keep = tf.minimum(tf.maximum(self.neg_pos_ratio * tf.compat.v1.to_int32(n_positive), self.n_neg_min), n_neg_losses)
 
         # In the unlikely case when either (1) there are no negative ground truth boxes at all
         # or (2) the classification loss for all negative boxes is zero, return zero as the `neg_class_loss`.
